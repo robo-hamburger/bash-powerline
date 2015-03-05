@@ -88,6 +88,31 @@ __powerline() {
         printf " $GIT_BRANCH_SYMBOL$branch$marks "
     }
 
+    __hg_info() { 
+        [ -x "$(which hg)" ] || return    # hg not found
+
+        local ident=(`hg identify 2>/dev/null`)
+
+        # get current branch name or short SHA1 hash for detached head
+        local branch="${ident[1]}"
+        local changeset="${ident[0]}"
+        local tip="${ident[2]}" || "$changeset"
+
+        [ -n "$changeset" ] || return  # hg branch not found
+
+        [ -n "$branch" ] && branch=${branch:1:`expr ${#branch} - 2`}
+        [ -n "$branch" ] || branch="default"
+
+        local marks
+
+        if [ "${changeset: -1}" = "+" ]; then
+            marks+=" $GIT_BRANCH_CHANGED_SYMBOL"
+        fi
+
+        # print the git branch segment without a trailing newline
+        printf " $GIT_BRANCH_SYMBOL$branch$marks $tip "
+    }
+
     ps1() {
         # Check the exit code of the previous command and display different
         # colors in the prompt accordingly. 
@@ -96,9 +121,10 @@ __powerline() {
         else
             local BG_EXIT="$BG_RED"
         fi
-
-        PS1="$BG_BASE1$FG_BASE3 \w $RESET"
-        PS1+="$BG_BLUE$FG_BASE3$(__git_info)$RESET"
+        
+        PS1="$BG_BASE2$FG_BASE1 \t $RESET"
+        PS1+="$BG_BASE1$FG_BASE3 \w $RESET"
+        PS1+="$BG_BLUE$FG_BASE3$(__git_info)$(__hg_info)$RESET"
         PS1+="$BG_EXIT$FG_BASE3 $PS_SYMBOL $RESET "
     }
 
