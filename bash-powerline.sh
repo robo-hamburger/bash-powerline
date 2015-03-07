@@ -93,10 +93,12 @@ __powerline() {
 
         local ident=(`hg identify 2>/dev/null`)
 
+        [ "${ident[1]}" = "tip" ] && ident=(${ident[0]} "" ${ident[1]})
+
         # get current branch name or short SHA1 hash for detached head
         local branch="${ident[1]}"
         local changeset="${ident[0]}"
-        local tip="${ident[2]}" || "$changeset"
+        local tip="${ident[2]}"
 
         [ -n "$changeset" ] || return  # hg branch not found
 
